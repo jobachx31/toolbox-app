@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toolbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Momo+Trust+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 -960 960 960%22 fill=%22%23e0e0e0%22><path d=%22M120-120v-320h320v320H120Zm0-400v-320h320v320H120Zm400 400v-320h320v320H520Zm0-400v-320h320v320H520Z%22/></svg>">
+</head>
+<body>
+
+    <header class="main-header">
+        <h1>Toolbox</h1>
+    </header>
+
+    <main class="container">
+        <!-- Modal for adding a new tool -->
+        <div id="add-tool-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <button id="close-modal-btn" class="close-modal-btn" title="Close"><span class="material-symbols-outlined">close</span></button>
+                <section class="form-section">
+                    <h2>Add a New Tool</h2>
+                    <form id="add-tool-form">
+                        <div class="form-group">
+                            <label for="tool-name">Tool Name</label>
+                            <input type="text" id="tool-name" placeholder="e.g., ChatGPT" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tool-url">URL</label>
+                            <input type="url" id="tool-url" placeholder="https://example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tool-tags">Tags (space-separated)</label>
+                            <input type="text" id="tool-tags" placeholder="e.g., ai art design">
+                        </div>
+                        <button type="submit" class="btn-add">Add Tool</button>
+                    </form>
+                </section>
+            </div>
+        </div>
+
+        <section class="tools-section">
+            <div class="search-container">
+                <input type="search" id="search-input" placeholder="Search for a tool...">
+                <button id="search-btn" class="search-btn" title="Search"><span class="material-symbols-outlined">search</span></button>
+                <button id="open-modal-btn" class="open-modal-btn" title="Add new tool"><span class="material-symbols-outlined">add</span></button>
+            </div>
+            <div id="tool-grid" class="tool-grid">
+                <!-- Tool tiles will be dynamically inserted here -->
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const addToolForm = document.getElementById('add-tool-form');
+    const toolGrid = document.getElementById('tool-grid');
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const modal = document.getElementById('add-tool-modal');
+    const openModalBtn = document.getElementById('open-modal-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+
+    // --- Application State ---
+    let tools = [];
+    let draggedItem = null;
+    let ghostTile = null;
+
+    // --- Functions ---
+
+    /**
+     * Loads tools from localStorage.
+     */
+    function loadTools() {
+        const storedTools = localStorage.getItem('toolbox-tools');
+        if (storedTools) {
+            tools = JSON.parse(storedTools);
+        }
+    }
+
+    /**
+     * Saves the current tools array to localStorage.
+     */
+    function saveTools() {
+        localStorage.setItem('toolbox-tools', JSON.stringify(tools));
+    }
+
+    /**
+     * Renders the tools in the grid, optionally filtering by a search term.
+     * @param {string} [filter=''] - The search term to filter tools by.
+     */
+    function renderTools(filter = '') {
+        toolGrid.innerHTML = ''; // Clear existing grid
+        const lowercasedFilter = filter.toLowerCase();
+
+        const filteredTools = tools.filter(tool =>
+            tool.name.toLowerCase().includes(lowercasedFilter) ||
+            (tool.tags && tool.tags.toLowerCase().includes(lowercasedFilter))
+        );
+
+        if (filteredTools.length === 0 && tools.length > 0) {
+            toolGrid.innerHTML = '<p class="grid-empty-message">No tools match your search.</p>';
+            return;
+        }
+        
+        if (tools.length === 0) {
+            toolGrid.innerHTML = '<p class="grid-empty-message">Click the + button to add a tool</p>';
+            return;
+        }
+
+        filteredTools.forEach(tool => {
+            const toolTile = document.createElement('div');
+            toolTile.classList.add('tool-tile');
+            toolTile.setAttribute('draggable', 'true');
+            toolTile.dataset.id = tool.id;
+            if (tool.wide) {
+                toolTile.classList.add('wide');
+            }
+
+            const tagsHTML = tool.tags
+                ? tool.tags.split(' ').filter(tag => tag).map(tag => `<span class="tag-badge">${tag}</span>`).join('')
+                : '';
+
+            toolTile.innerHTML = `
+                <div class="resize-handle" draggable="true"><span class="material-symbols-outlined">drag_indicator</span></div>
+                <button class="delete-btn" title="Delete tool"><span class="material-symbols-outlined">delete</span></button>
+                <h3><a href="${tool.url}" target="_blank" rel="noopener noreferrer">${tool.name}</a></h3>
+                <div class="tags-container">
+                    ${tagsHTML || '<p style="opacity: 0.6; font-size: 0.8rem;">No tags provided.</p>'}
+                </div>
+            `;
+
+            // Add event listener for the delete button
+            toolTile.querySelector('.delete-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering drag events
+                deleteTool(tool.id);
+            });
+
+            // Add event listener for the whole tile to be clickable
+            toolTile.addEventListener('click', (e) => {
+                // Do not open link if the click was on the delete button or the link itself
+                if (e.target.closest('.delete-btn') || e.target.closest('a')) {
+                    return;
+                }
+                window.open(tool.url, '_blank', 'noopener,noreferrer');
+            });
+
+            toolGrid.appendChild(toolTile);
+        });
+
+        initDragAndDrop();
+    }
+
+    /**
+     * Adds a new tool to the collection.
+     * @param {Event} e - The form submission event.
+     */
+    function addTool(e) {
+        e.preventDefault();
+        const nameInput = document.getElementById('tool-name');
+        const urlInput = document.getElementById('tool-url');
+        const tagsInput = document.getElementById('tool-tags');
+
+        // Basic validation (HTML5 'required' and 'type="url"' handle most of it)
+        if (!nameInput.value.trim() || !urlInput.value.trim()) {
+            alert('Tool Name and URL are required.');
+            return;
+        }
+
+        const newTool = {
+            id: Date.now().toString(), // Simple unique ID
+            name: nameInput.value.trim(),
+            url: urlInput.value.trim(),
+            tags: tagsInput.value.trim(),
+            wide: false, // Default to not wide
+        };
+
+        tools.unshift(newTool); // Add to the beginning of the array
+        saveTools();
+        renderTools();
+        addToolForm.reset(); // Clear the form
+        closeModal(); // Close modal after adding
+    }
+
+    /**
+     * Deletes a tool by its ID.
+     * @param {string} id - The ID of the tool to delete.
+     */
+    function deleteTool(id) {
+        if (confirm('Are you sure you want to delete this tool?')) {
+            tools = tools.filter(tool => tool.id !== id);
+            saveTools();
+            renderTools(searchInput.value); // Re-render with current filter
+        }
+    }
+
+    /**
+     * Updates the order of tools in the state array based on the DOM.
+     */
+    function updateOrderInStorage() {
+        const newOrderIds = [...toolGrid.querySelectorAll('.tool-tile')].map(tile => tile.dataset.id);
+        
+        // Reorder the `tools` array to match the DOM order
+        tools.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+        
+        saveTools();
+    }
+
+    /**
+     * Opens the 'Add Tool' modal.
+     */
+    function openModal() {
+        modal.classList.remove('hidden');
+    }
+
+    /**
+     * Closes the 'Add Tool' modal.
+     */
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
+
+    /**
+     * Initializes drag and drop event listeners for all tool tiles.
+     */
+    function initDragAndDrop() {
+        toolGrid.querySelectorAll('.tool-tile').forEach(tile => {
+            // --- RESIZE LOGIC ---
+            const resizeHandle = tile.querySelector('.resize-handle');
+            resizeHandle.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // Prevent text selection
+                e.stopPropagation(); // Stop card drag from starting
+
+                tile.classList.add('is-resizing');
+                const startX = e.clientX;
+                const toolId = tile.dataset.id;
+                const tool = tools.find(t => t.id === toolId);
+                const initialWideState = tool.wide;
+
+                function onMouseMove(moveEvent) {
+                    const deltaX = moveEvent.clientX - startX;
+                    // Instantly toggle visual state based on drag direction
+                    if (deltaX > 20 && !tile.classList.contains('wide')) {
+                        tile.classList.add('wide');
+                    } else if (deltaX < -20 && tile.classList.contains('wide')) {
+                        tile.classList.remove('wide');
+                    }
+                }
+
+                function onMouseUp(upEvent) {
+                    tile.classList.remove('is-resizing');
+                    const endX = upEvent.clientX;
+
+                    // Finalize state based on final position
+                    if (endX > startX + 50) { // Moved right by 50px
+                        tool.wide = true;
+                    } else if (endX < startX - 50) { // Moved left by 50px
+                        tool.wide = false;
+                    } else {
+                        // Not dragged far enough, revert to initial state
+                        tool.wide = initialWideState;
+                    }
+
+                    saveTools();
+                    renderTools(searchInput.value);
+
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
+                }
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            });
+
+            // --- REORDER LOGIC ---
+            tile.addEventListener('dragstart', () => {
+                // Make sure cursor is grab/grabbing even when clicking on non-link part
+                tile.style.cursor = 'grabbing';
+                draggedItem = tile;
+
+                // Create and insert ghost tile
+                ghostTile = document.createElement('div');
+                ghostTile.className = 'tool-tile-ghost';
+                if (draggedItem.classList.contains('wide')) {
+                    ghostTile.style.gridColumn = 'span 2';
+                }
+                tile.parentElement.insertBefore(ghostTile, tile);
+
+                setTimeout(() => tile.classList.add('dragging'), 0);
+            });
+
+            tile.addEventListener('dragend', () => {
+                setTimeout(() => {
+                    tile.style.cursor = 'pointer';
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                    // Remove ghost tile on drag end
+                    if (ghostTile && ghostTile.parentElement) {
+                        ghostTile.parentElement.removeChild(ghostTile);
+                    }
+                    ghostTile = null;
+                }, 0);
+            });
+
+            tile.addEventListener('dragover', e => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(toolGrid, e.clientY);
+                if (afterElement == null) { // If dragging to the end
+                    toolGrid.appendChild(ghostTile);
+                } else {
+                    toolGrid.insertBefore(ghostTile, afterElement);
+                }
+            });
+            
+            tile.addEventListener('drop', e => {
+                e.preventDefault();
+                updateOrderInStorage();
+            });
+
+            tile.addEventListener('drop', e => {
+                e.preventDefault();
+                toolGrid.insertBefore(draggedItem, ghostTile); // Move the actual item to the ghost's position
+                updateOrderInStorage();
+            });
+        });
+    }
+
+    /**
+     * Helper function to determine where to drop the dragged item.
+     * @param {HTMLElement} container - The grid container.
+     * @param {number} y - The vertical mouse position.
+     * @returns {HTMLElement|null} The element to insert before, or null.
+     */
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.tool-tile:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+
+    // --- Event Listeners ---
+    addToolForm.addEventListener('submit', addTool);
+    searchInput.addEventListener('input', () => renderTools(searchInput.value));
+    searchBtn.addEventListener('click', () => {
+        searchInput.focus();
+    });
+    openModalBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        // Close modal if the overlay is clicked, but not the content inside
+        if (e.target === modal) closeModal();
+    });
+
+    // --- Initial Load ---
+    loadTools();
+    renderTools();
+});

@@ -1,0 +1,417 @@
+/* --- Global Styles & Variables --- */
+:root {
+    --bg-color: #1a1a2e;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --accent-color: #214b7b; /* A deep blue */
+    --accent-color-light: #3a6aa4; /* A lighter, more vibrant blue */
+    --text-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --danger-color: #e74c3c;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(to bottom, #121212, #212121);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    background-attachment: fixed;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* --- Header --- */
+.main-header {
+    text-align: center;
+    padding: 30px 20px;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.main-header h1 {
+    font-size: 4.5rem;
+    color: var(--text-color);
+    font-family: 'Momo Trust Display', sans-serif;
+    font-weight: normal; /* Custom fonts often need weight reset */
+}
+
+.open-modal-btn {
+    width: 46px;
+    height: 46px;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: inset 1px 1px 3px rgba(255,255,255,0.2),
+                2px 2px 8px rgba(0,0,0,0.5);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;     
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.open-modal-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* --- Form Section --- */
+.form-section {
+    margin-bottom: 20px;
+}
+
+.form-section h2 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="search"],
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: rgba(0,0,0,0.2);
+    color: var(--text-color);
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+    color: white;
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(0, 120, 255, 0.25);
+}
+
+/* Override focus style for inputs within the modal */
+.modal-content input[type="text"]:focus,
+.modal-content input[type="url"]:focus {
+    border-color: var(--accent-color); /* Keep a subtle border highlight */
+    box-shadow: none; /* Remove the outer glow */
+}
+
+.btn-add {
+    display: block;
+    width: 100%;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: inset 1px 1px 3px rgba(255,255,255,0.1),
+                2px 2px 8px rgba(0,0,0,0.5);
+    color: white;
+    font-size: 1rem;
+    padding: 12px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.btn-add:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Search & Tools Section --- */
+.search-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: 150px;
+    gap: 20px;
+}
+
+.grid-empty-message {
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    opacity: 0.6;
+    margin-top: 40px;
+    font-size: 1.1rem;
+}
+
+input[type="search"] {
+    max-width: 300px;
+    border-radius: 50px;
+    text-align: left;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border: none;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 12px 20px;
+}
+
+/* Override the default focus style specifically for the search bar */
+input[type="search"]:focus {
+    box-shadow: 0 4px 20px var(--shadow-color); /* Maintain its floating shadow */
+    border-color: transparent; /* Ensure no border color is added */
+}
+
+/* Hide placeholder text when the search bar is focused */
+input[type="search"]:focus::placeholder {
+    color: transparent;
+}
+
+.search-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-color);
+    cursor: pointer;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.tool-tile {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* For Safari */
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 30px var(--shadow-color);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+/* --- Card States --- */
+.tool-tile.wide {
+    grid-column: span 2;
+}
+
+/* Class added to a tile while its resize handle is being dragged */
+.tool-tile.is-resizing {
+    transition: none; /* Disable transitions during resize for instant feedback */
+}
+
+.tool-tile-ghost {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    border: 2px dashed var(--glass-border);
+    transition: all 0.2s ease;
+}
+
+.tool-tile:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.tool-tile.dragging {
+    opacity: 0.5;
+    background: #eef5ff;
+    border: 2px dashed var(--accent-color);
+    cursor: grabbing;
+}
+
+.tool-tile h3 {
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+}
+
+.tool-tile h3 a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.tool-tile h3 a:hover {
+    text-decoration: underline;
+}
+
+.tags-container {
+    flex-grow: 1;
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start; /* Align tags to the top */
+}
+
+.tag-badge {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #a0a0c0;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    margin: 0 5px 5px 0;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.resize-handle .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.tool-tile p {
+    flex-grow: 1; /* Pushes delete button to the bottom */
+    margin-bottom: 15px;
+    color: #a0a0c0;
+    word-wrap: break-word;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.tool-tile p::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05));
+}
+
+.delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-btn:hover {
+    color: var(--danger-color);
+}
+
+/* --- Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 10vh;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); /* For Safari */
+    border: 1px solid var(--glass-border);
+    padding: 25px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+    transform: scale(1);
+}
+
+.close-modal-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #a0a0c0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+}
+
+.close-modal-btn:hover {
+    color: var(--text-color);
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.hidden .modal-content {
+    transform: scale(0.9);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 600px) {
+    .tool-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .main-header h1 {
+        font-size: 2rem;
+    }
+    .container {
+        padding: 15px;
+    }
+    .form-section {
+        padding: 20px;
+    }
+}
