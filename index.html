@@ -40,15 +40,32 @@
                         </div>
                         <button type="submit" class="btn-add">Add Tool</button>
                     </form>
-                </section>
+                </section>  
             </div>
         </div>
+
+        <!-- Modal for confirmations and alerts -->
+        <div id="alert-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h2 id="alert-modal-title">Confirmation</h2>
+                <p id="alert-modal-message">Are you sure?</p>
+                <div id="alert-modal-buttons" class="modal-buttons">
+                    <!-- Buttons will be dynamically inserted here -->
+                    <button id="alert-modal-cancel" class="btn-secondary">Cancel</button>
+                    <button id="alert-modal-confirm" class="btn-danger">Confirm</button>
+                </div>
+            </div>
+        </div>
+
 
         <section class="tools-section">
             <div class="search-container">
                 <input type="search" id="search-input" placeholder="Search for a tool...">
                 <button id="search-btn" class="search-btn" title="Search"><span class="material-symbols-outlined">search</span></button>
                 <button id="open-modal-btn" class="open-modal-btn" title="Add new tool"><span class="material-symbols-outlined">add</span></button>
+                <button id="export-btn" class="export-btn" title="Export tools"><span class="material-symbols-outlined">file_upload</span></button>
+                <button id="import-btn" class="import-btn" title="Import tools"><span class="material-symbols-outlined">file_download</span></button>
+                <input type="file" id="import-file-input" accept=".json" style="display: none;">
             </div>
             <div id="tool-grid" class="tool-grid">
                 <!-- Tool tiles will be dynamically inserted here -->

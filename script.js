@@ -7,6 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('add-tool-modal');
     const openModalBtn = document.getElementById('open-modal-btn');
     const closeModalBtn = document.getElementById('close-modal-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const importBtn = document.getElementById('import-btn');
+    const importFileInput = document.getElementById('import-file-input');
+    const alertModal = document.getElementById('alert-modal');
+    const alertModalTitle = document.getElementById('alert-modal-title');
+    const alertModalMessage = document.getElementById('alert-modal-message');
+    const alertModalButtons = document.getElementById('alert-modal-buttons');
+
+    // To store the callback for the confirmation modal
+    let confirmCallback = null;
 
     // --- Application State ---
     let tools = [];
@@ -110,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Basic validation (HTML5 'required' and 'type="url"' handle most of it)
         if (!nameInput.value.trim() || !urlInput.value.trim()) {
-            alert('Tool Name and URL are required.');
+            showAlert('Validation Error', 'Tool Name and URL are required.');
             return;
         }
 
@@ -134,11 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} id - The ID of the tool to delete.
      */
     function deleteTool(id) {
-        if (confirm('Are you sure you want to delete this tool?')) {
+        const onConfirm = () => {
             tools = tools.filter(tool => tool.id !== id);
             saveTools();
             renderTools(searchInput.value); // Re-render with current filter
-        }
+        };
+        showConfirmation('Delete Tool', 'Are you sure you want to delete this tool?', onConfirm);
     }
 
     /**
@@ -167,6 +178,94 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.add('hidden');
     }
 
+    /**
+     * Exports the current set of tools to a JSON file.
+     */
+    function exportTools() {
+        if (tools.length === 0) {
+            showAlert("Export Failed", "There are no tools to export.");
+            return;
+        }
+        const dataStr = JSON.stringify(tools, null, 2); // Pretty-print JSON
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `toolbox-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Imports tools from a user-selected JSON file.
+     * @param {Event} e - The file input change event.
+     */
+    function importTools(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedTools = JSON.parse(event.target.result);
+                // Basic validation of the imported data structure
+                if (!Array.isArray(importedTools) || (importedTools.length > 0 && !importedTools[0].id)) {
+                    throw new Error("Invalid file format.");
+                }
+
+                const onConfirm = () => {
+                    tools = importedTools;
+                    saveTools();
+                    renderTools();
+                };
+
+                showConfirmation(
+                    'Import Tools', 
+                    'This will replace all your current tools. Are you sure you want to continue?', 
+                    onConfirm
+                );
+
+            } catch (error) {
+                showAlert('Import Error', `Error importing file: ${error.message}`);
+            } finally {
+                importFileInput.value = ''; // Reset file input
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    /**
+     * Shows a generic alert modal.
+     * @param {string} title - The title for the modal.
+     * @param {string} message - The message to display.
+     */
+    function showAlert(title, message) {
+        alertModalTitle.textContent = title;
+        alertModalMessage.textContent = message;
+        alertModalButtons.innerHTML = '<button id="alert-modal-confirm" class="btn-secondary">OK</button>';
+        alertModal.classList.remove('hidden');
+        document.getElementById('alert-modal-confirm').focus();
+    }
+
+    /**
+     * Shows a confirmation modal with confirm/cancel actions.
+     * @param {string} title - The title for the modal.
+     * @param {string} message - The message to display.
+     * @param {Function} onConfirm - The callback function to execute on confirmation.
+     */
+    function showConfirmation(title, message, onConfirm) {
+        alertModalTitle.textContent = title;
+        alertModalMessage.textContent = message;
+        alertModalButtons.innerHTML = `
+            <button id="alert-modal-cancel" class="btn-secondary">Cancel</button>
+            <button id="alert-modal-confirm" class="btn-danger">Confirm</button>
+        `;
+        confirmCallback = onConfirm;
+        alertModal.classList.remove('hidden');
+        document.getElementById('alert-modal-confirm').focus();
+    }
     /**
      * Initializes drag and drop event listeners for all tool tiles.
      */
@@ -303,6 +402,27 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.addEventListener('click', (e) => {
         // Close modal if the overlay is clicked, but not the content inside
         if (e.target === modal) closeModal();
+    });
+    exportBtn.addEventListener('click', exportTools);
+    importBtn.addEventListener('click', () => {
+        // Trigger the hidden file input
+        importFileInput.click();
+    });
+    importFileInput.addEventListener('change', importTools);
+    alertModal.addEventListener('click', (e) => {
+        if (e.target === alertModal) { // Clicked on overlay
+            alertModal.classList.add('hidden');
+            confirmCallback = null; // Clear callback
+        }
+        if (e.target.id === 'alert-modal-cancel') {
+            alertModal.classList.add('hidden');
+            confirmCallback = null; // Clear callback
+        }
+        if (e.target.id === 'alert-modal-confirm') {
+            alertModal.classList.add('hidden');
+            if (confirmCallback) confirmCallback();
+            confirmCallback = null; // Clear callback
+        }
     });
 
     // --- Initial Load ---
