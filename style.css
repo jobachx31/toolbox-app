@@ -1,13 +1,13 @@
 /* --- Global Styles & Variables --- */
 :root {
-    --bg-color: #1a1a2e;
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --accent-color: #214b7b; /* A deep blue */
-    --accent-color-light: #3a6aa4; /* A lighter, more vibrant blue */
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --primary-color: #bb86fc;
+    --primary-variant-color: #3700b3;
     --text-color: #e0e0e0;
-    --shadow-color: rgba(0, 0, 0, 0.2);
+    --text-secondary-color: #a0a0a0;
     --danger-color: #e74c3c;
+    --border-color: rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -18,7 +18,7 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(to bottom, #121212, #212121);
+    background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
@@ -35,7 +35,6 @@ body {
 .main-header {
     text-align: center;
     padding: 30px 20px;
-    position: relative;
     margin-bottom: 20px;
 }
 
@@ -48,14 +47,11 @@ body {
 
 .open-modal-btn {
     width: 46px;
-    height: 46px;
-    backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: inset 1px 1px 3px rgba(255,255,255,0.2),
-                2px 2px 8px rgba(0,0,0,0.5);
+    height: 46px;    
+    background: var(--primary-color);
     color: white;
     border-radius: 50%;
+    border: none;
     cursor: pointer;     
     transition: all 0.2s ease;
     display: flex;
@@ -64,7 +60,7 @@ body {
 }
 
 .open-modal-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--primary-variant-color);
     transform: scale(1.1);
 }
 
@@ -93,10 +89,10 @@ input[type="url"],
 input[type="search"],
 textarea {
     width: 100%;
-    padding: 12px;
-    border: 1px solid var(--glass-border);
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 1rem;    
     transition: border-color 0.2s, box-shadow 0.2s;
     background-color: rgba(0,0,0,0.2);
     color: var(--text-color);
@@ -108,8 +104,8 @@ input[type="search"]:focus,
 textarea:focus {
     color: white;
     outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(0, 120, 255, 0.25);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(187, 134, 252, 0.25);
 }
 
 /* Override focus style for inputs within the modal */
@@ -122,12 +118,9 @@ textarea:focus {
 .btn-add {
     display: block;
     width: 100%;
-    backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: inset 1px 1px 3px rgba(255,255,255,0.1),
-                2px 2px 8px rgba(0,0,0,0.5);
-    color: white;
+    background: var(--primary-color);
+    border: none;
+    color: #000;
     font-size: 1rem;
     padding: 12px 28px;
     border-radius: 999px;
@@ -137,7 +130,7 @@ textarea:focus {
 }
 
 .btn-add:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--primary-variant-color);
 }
 
 /* --- Search & Tools Section --- */
@@ -168,16 +161,15 @@ textarea:focus {
 input[type="search"] {
     max-width: 300px;
     border-radius: 50px;
-    text-align: left;
-    box-shadow: 0 4px 20px var(--shadow-color);
-    border: none;
-    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
     padding: 12px 20px;
+    transition: all 0.3s ease;
 }
 
 /* Override the default focus style specifically for the search bar */
 input[type="search"]:focus {
-    box-shadow: 0 4px 20px var(--shadow-color); /* Maintain its floating shadow */
+    box-shadow: none;
     border-color: transparent; /* Ensure no border color is added */
 }
 
@@ -187,16 +179,16 @@ input[type="search"]:focus::placeholder {
 }
 
 .export-btn,
+.edit-btn,
 .import-btn,
 .search-btn {
     width: 46px;
     height: 46px;
     border-radius: 50%;
     border: none;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--surface-color);
     color: var(--text-color);
     cursor: pointer;
-    box-shadow: 0 4px 20px var(--shadow-color);
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
     display: flex;
     justify-content: center;
@@ -204,20 +196,19 @@ input[type="search"]:focus::placeholder {
 }
 
 .export-btn:hover,
+.edit-btn:hover,
 .import-btn:hover,
 .search-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);    
     transform: scale(1.1);
 }
 
 .tool-tile {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* For Safari */
-    border: 1px solid var(--glass-border);
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 4px 30px var(--shadow-color);
+    box-shadow: none;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -239,19 +230,19 @@ input[type="search"]:focus::placeholder {
 .tool-tile-ghost {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 16px;
-    border: 2px dashed var(--glass-border);
+    border: 2px dashed var(--border-color);
     transition: all 0.2s ease;
 }
 
 .tool-tile:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
 }
 
 .tool-tile.dragging {
     opacity: 0.5;
     background: #eef5ff;
-    border: 2px dashed var(--accent-color);
+    border: 2px dashed var(--primary-color);
     cursor: grabbing;
 }
 
@@ -261,7 +252,7 @@ input[type="search"]:focus::placeholder {
 }
 
 .tool-tile h3 a {
-    color: var(--accent-color);
+    color: var(--text-color);
     text-decoration: none;
     font-weight: 600;
 }
@@ -279,8 +270,8 @@ input[type="search"]:focus::placeholder {
 }
 
 .tag-badge {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #a0a0c0;
+    background-color: var(--primary-color);
+    color: #000;
     padding: 3px 10px;
     border-radius: 999px;
     font-size: 0.75rem;
@@ -307,7 +298,7 @@ input[type="search"]:focus::placeholder {
 .tool-tile p {
     flex-grow: 1; /* Pushes delete button to the bottom */
     margin-bottom: 15px;
-    color: #a0a0c0;
+    color: var(--text-secondary-color);
     word-wrap: break-word;
     position: relative;
     overflow: hidden;
@@ -321,13 +312,32 @@ input[type="search"]:focus::placeholder {
     left: 0;
     width: 100%;
     height: 40px;
-    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05));
+    background: linear-gradient(to bottom, transparent, var(--surface-color));
 }
 
 .delete-btn {
     position: absolute;
     top: 10px;
     right: 10px;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;    
+    color: #888;
+    transition: color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-btn:hover {
+    color: var(--danger-color);
+}
+.edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 40px;
     width: 32px;
     height: 32px;
     background: none;
@@ -339,9 +349,8 @@ input[type="search"]:focus::placeholder {
     justify-content: center;
     align-items: center;
 }
-
-.delete-btn:hover {
-    color: var(--danger-color);
+.edit-btn:hover {
+    color: var(--primary-color);
 }
 
 /* --- Modal Styles --- */
@@ -362,15 +371,13 @@ input[type="search"]:focus::placeholder {
 }
 
 .modal-content {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* For Safari */
-    border: 1px solid var(--glass-border);
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
     padding: 25px;
     border-radius: 16px;
     width: 90%;
     max-width: 450px;
-    position: relative;
+    position: relative;    
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     transition: transform 0.3s ease;
     transform: scale(1);
@@ -380,7 +387,7 @@ input[type="search"]:focus::placeholder {
     position: absolute;
     top: 10px;
     right: 15px;
-    color: #a0a0c0;
+    color: var(--text-secondary-color);
     background: none;
     border: none;
     cursor: pointer;
@@ -430,13 +437,13 @@ input[type="search"]:focus::placeholder {
 }
 
 .modal-buttons .btn-secondary {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: transparent;
     color: var(--text-color);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--border-color);
 }
 
 .modal-buttons .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .modal-buttons .btn-danger {

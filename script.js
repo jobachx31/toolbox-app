@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const importBtn = document.getElementById('import-btn');
     const importFileInput = document.getElementById('import-file-input');
     const alertModal = document.getElementById('alert-modal');
+    const editBtn = document.getElementById('edit-btn');
     const alertModalTitle = document.getElementById('alert-modal-title');
     const alertModalMessage = document.getElementById('alert-modal-message');
     const alertModalButtons = document.getElementById('alert-modal-buttons');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Application State ---
     let tools = [];
     let draggedItem = null;
+    let editingToolId = null;
     let ghostTile = null;
 
     // --- Functions ---
@@ -81,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             toolTile.innerHTML = `
                 <div class="resize-handle" draggable="true"><span class="material-symbols-outlined">drag_indicator</span></div>
                 <button class="delete-btn" title="Delete tool"><span class="material-symbols-outlined">delete</span></button>
+                <button class="edit-btn" title="Edit tool"><span class="material-symbols-outlined">edit</span></button>
                 <h3><a href="${tool.url}" target="_blank" rel="noopener noreferrer">${tool.name}</a></h3>
                 <div class="tags-container">
                     ${tagsHTML || '<p style="opacity: 0.6; font-size: 0.8rem;">No tags provided.</p>'}
@@ -91,6 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
             toolTile.querySelector('.delete-btn').addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent triggering drag events
                 deleteTool(tool.id);
+            });
+
+            toolTile.querySelector('.edit-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditModal(tool.id);
             });
 
             // Add event listener for the whole tile to be clickable
@@ -118,21 +126,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const urlInput = document.getElementById('tool-url');
         const tagsInput = document.getElementById('tool-tags');
 
-        // Basic validation (HTML5 'required' and 'type="url"' handle most of it)
         if (!nameInput.value.trim() || !urlInput.value.trim()) {
             showAlert('Validation Error', 'Tool Name and URL are required.');
             return;
         }
 
-        const newTool = {
-            id: Date.now().toString(), // Simple unique ID
-            name: nameInput.value.trim(),
-            url: urlInput.value.trim(),
-            tags: tagsInput.value.trim(),
-            wide: false, // Default to not wide
-        };
+        if (editingToolId) {
+            // Find the tool and update it
+            const toolToUpdate = tools.find(tool => tool.id === editingToolId);
+            if (toolToUpdate) {
+                toolToUpdate.name = nameInput.value.trim();
+                toolToUpdate.url = urlInput.value.trim();
+                toolToUpdate.tags = tagsInput.value.trim();
+            }
+            editingToolId = null; // Reset editing state
+        } else {
+            // Add a new tool
+            const newTool = {
+                id: Date.now().toString(),
+                name: nameInput.value.trim(),
+                url: urlInput.value.trim(),
+                tags: tagsInput.value.trim(),
+                wide: false,
+            };
+            tools.unshift(newTool);
+        }
 
-        tools.unshift(newTool); // Add to the beginning of the array
         saveTools();
         renderTools();
         addToolForm.reset(); // Clear the form
@@ -167,14 +186,37 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Opens the 'Add Tool' modal.
      */
-    function openModal() {
+    function openAddModal() {
+        editingToolId = null; // Ensure we're not in edit mode
+        document.getElementById('add-tool-form').reset();
+        document.querySelector('.form-section h2').textContent = 'Add a New Tool';
+        document.querySelector('.btn-add').textContent = 'Add Tool';
         modal.classList.remove('hidden');
+        document.getElementById('tool-name').focus();
+    }
+
+    function openEditModal(id) {
+        const tool = tools.find(t => t.id === id);
+        if (!tool) return;
+
+        editingToolId = id;
+
+        document.getElementById('tool-name').value = tool.name;
+        document.getElementById('tool-url').value = tool.url;
+        document.getElementById('tool-tags').value = tool.tags || '';
+
+        document.querySelector('.form-section h2').textContent = 'Edit Tool';
+        document.querySelector('.btn-add').textContent = 'Save Changes';
+
+        modal.classList.remove('hidden');
+        document.getElementById('tool-name').focus();
     }
 
     /**
      * Closes the 'Add Tool' modal.
      */
     function closeModal() {
+        editingToolId = null;
         modal.classList.add('hidden');
     }
 
@@ -397,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     searchBtn.addEventListener('click', () => {
         searchInput.focus();
     });
-    openModalBtn.addEventListener('click', openModal);
+    openModalBtn.addEventListener('click', openAddModal);
     closeModalBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
         // Close modal if the overlay is clicked, but not the content inside
