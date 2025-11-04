@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const importBtn = document.getElementById('import-btn');
     const importFileInput = document.getElementById('import-file-input');
     const alertModal = document.getElementById('alert-modal');
-    const editBtn = document.getElementById('edit-btn');
     const alertModalTitle = document.getElementById('alert-modal-title');
     const alertModalMessage = document.getElementById('alert-modal-message');
     const alertModalButtons = document.getElementById('alert-modal-buttons');
