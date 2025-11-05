@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let tools = [];
     let draggedItem = null;
     let editingToolId = null;
+    let isInitialLoad = true; // Flag to check for the first page load
     let ghostTile = null;
 
     // --- Functions ---
@@ -66,21 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        filteredTools.forEach(tool => {
+        filteredTools.forEach((tool, index) => {
             const toolTile = document.createElement('div');
             toolTile.classList.add('tool-tile');
             toolTile.setAttribute('draggable', 'true');
             toolTile.dataset.id = tool.id;
-            if (tool.wide) {
-                toolTile.classList.add('wide');
+
+            if (isInitialLoad) {
+                toolTile.classList.add('animate-in');
+                toolTile.style.animationDelay = `${index * 50}ms`; // Stagger the animation
             }
 
             const tagsHTML = tool.tags
-                ? tool.tags.split(' ').filter(tag => tag).map(tag => `<span class="tag-badge">${tag}</span>`).join('')
+                ? tool.tags.split(' ').filter(tag => tag).slice(0, 4).map(tag => `<span class="tag-badge">${tag}</span>`).join('')
                 : '';
 
             toolTile.innerHTML = `
-                <div class="resize-handle" draggable="true"><span class="material-symbols-outlined">drag_indicator</span></div>
                 <button class="delete-btn" title="Delete tool"><span class="material-symbols-outlined">delete</span></button>
                 <button class="edit-btn" title="Edit tool"><span class="material-symbols-outlined">edit</span></button>
                 <h3><a href="${tool.url}" target="_blank" rel="noopener noreferrer">${tool.name}</a></h3>
@@ -113,6 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         initDragAndDrop();
+
+        // After the first render, set the flag to false so animations don't re-run on search/filter
+        if (isInitialLoad) {
+            isInitialLoad = false;
+        }
     }
 
     /**
@@ -146,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: nameInput.value.trim(),
                 url: urlInput.value.trim(),
                 tags: tagsInput.value.trim(),
-                wide: false,
             };
             tools.unshift(newTool);
         }
@@ -312,52 +318,31 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function initDragAndDrop() {
         toolGrid.querySelectorAll('.tool-tile').forEach(tile => {
-            // --- RESIZE LOGIC ---
-            const resizeHandle = tile.querySelector('.resize-handle');
-            resizeHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault(); // Prevent text selection
-                e.stopPropagation(); // Stop card drag from starting
+            // --- MOUSE-TRACKING SHADOW EFFECT ---
+            tile.addEventListener('mousemove', e => {
+                const rect = tile.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
-                tile.classList.add('is-resizing');
-                const startX = e.clientX;
-                const toolId = tile.dataset.id;
-                const tool = tools.find(t => t.id === toolId);
-                const initialWideState = tool.wide;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
 
-                function onMouseMove(moveEvent) {
-                    const deltaX = moveEvent.clientX - startX;
-                    // Instantly toggle visual state based on drag direction
-                    if (deltaX > 20 && !tile.classList.contains('wide')) {
-                        tile.classList.add('wide');
-                    } else if (deltaX < -20 && tile.classList.contains('wide')) {
-                        tile.classList.remove('wide');
-                    }
-                }
+                const deltaX = x - centerX;
+                const deltaY = y - centerY;
 
-                function onMouseUp(upEvent) {
-                    tile.classList.remove('is-resizing');
-                    const endX = upEvent.clientX;
+                // Apply a factor to control shadow distance, without inverting
+                const shadowX = deltaX / 10;
+                const shadowY = deltaY / 10;
 
-                    // Finalize state based on final position
-                    if (endX > startX + 50) { // Moved right by 50px
-                        tool.wide = true;
-                    } else if (endX < startX - 50) { // Moved left by 50px
-                        tool.wide = false;
-                    } else {
-                        // Not dragged far enough, revert to initial state
-                        tool.wide = initialWideState;
-                    }
-
-                    saveTools();
-                    renderTools(searchInput.value);
-
-                    window.removeEventListener('mousemove', onMouseMove);
-                    window.removeEventListener('mouseup', onMouseUp);
-                }
-                window.addEventListener('mousemove', onMouseMove);
-                window.addEventListener('mouseup', onMouseUp);
+                tile.style.setProperty('--shadow-offset-x', `${shadowX}px`);
+                tile.style.setProperty('--shadow-offset-y', `${shadowY}px`);
             });
 
+            tile.addEventListener('mouseleave', () => {
+                // Reset the shadow to its default position when the mouse leaves
+                tile.style.setProperty('--shadow-offset-x', `0px`);
+                tile.style.setProperty('--shadow-offset-y', `5px`);
+            });
             // --- REORDER LOGIC ---
             tile.addEventListener('dragstart', () => {
                 // Make sure cursor is grab/grabbing even when clicking on non-link part
@@ -367,9 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Create and insert ghost tile
                 ghostTile = document.createElement('div');
                 ghostTile.className = 'tool-tile-ghost';
-                if (draggedItem.classList.contains('wide')) {
-                    ghostTile.style.gridColumn = 'span 2';
-                }
                 tile.parentElement.insertBefore(ghostTile, tile);
 
                 setTimeout(() => tile.classList.add('dragging'), 0);
