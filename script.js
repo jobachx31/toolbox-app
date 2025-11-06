@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolGrid = document.getElementById('tool-grid');
     const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('search-btn');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
     const modal = document.getElementById('add-tool-modal');
     const openModalBtn = document.getElementById('open-modal-btn');
     const closeModalBtn = document.getElementById('close-modal-btn');
@@ -38,6 +39,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Filters the tools based on a search term, supporting order-independent tag search.
+     * @param {string} [filter=''] - The search term to filter tools by.
+     * @returns {Array} - The filtered list of tools.
+     */
+    function getFilteredTools(filter = '') {
+        const lowercasedFilter = filter.toLowerCase().trim();
+        if (!lowercasedFilter) {
+            return tools; // If no filter, return all tools
+        }
+
+        const searchTerms = lowercasedFilter.split(/\s+/).filter(term => term); // Split by whitespace, remove empty strings
+
+        return tools.filter(tool => {
+            // Check tool name for full search term match
+            if (tool.name.toLowerCase().includes(lowercasedFilter)) {
+                return true;
+            }
+
+            // Check tool tags for all search terms, order-independent
+            if (tool.tags) {
+                const toolTags = tool.tags.toLowerCase().split(/\s+/).filter(tag => tag);
+                // Check if every search term is present in the tool's tags (partial match within tags allowed)
+                const allTagsMatch = searchTerms.every(term =>
+                    toolTags.some(toolTag => toolTag.includes(term))
+                );
+                if (allTagsMatch) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    /**
      * Saves the current tools array to localStorage.
      */
     function saveTools() {
@@ -45,18 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Renders the tools in the grid, optionally filtering by a search term.
-     * @param {string} [filter=''] - The search term to filter tools by.
+     * Renders the tools in the grid.
+     * @param {string} [filter=''] - The current search filter.
      */
     function renderTools(filter = '') {
         toolGrid.innerHTML = ''; // Clear existing grid
-        const lowercasedFilter = filter.toLowerCase();
-
-        const filteredTools = tools.filter(tool =>
-            tool.name.toLowerCase().includes(lowercasedFilter) ||
-            (tool.tags && tool.tags.toLowerCase().includes(lowercasedFilter))
-        );
-
+        const filteredTools = getFilteredTools(filter);
         if (filteredTools.length === 0 && tools.length > 0) {
             toolGrid.innerHTML = '<p class="grid-empty-message">No tools match your search.</p>';
             return;
@@ -233,7 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert("Export Failed", "There are no tools to export.");
             return;
         }
-        const dataStr = JSON.stringify(tools, null, 2); // Pretty-print JSON
+        // Create a new array of tools without the 'wide' property for a clean export
+        const toolsToExport = tools.map(({ id, name, url, tags }) => ({ id, name, url, tags }));
+        const dataStr = JSON.stringify(toolsToExport, null, 2); // Pretty-print JSON
         const dataBlob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement('a');
@@ -263,7 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const onConfirm = () => {
-                    tools = importedTools;
+                    // Ensure imported tools don't have the legacy 'wide' property
+                    tools = importedTools.map(({ id, name, url, tags }) => ({
+                        id, name, url, tags
+                    }));
                     saveTools();
                     renderTools();
                 };
@@ -413,12 +447,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-
     // --- Event Listeners ---
     addToolForm.addEventListener('submit', addTool);
-    searchInput.addEventListener('input', () => renderTools(searchInput.value));
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value;
+        renderTools(searchTerm);
+        // Show or hide the clear button based on whether there's input
+        clearSearchBtn.classList.toggle('hidden', !searchTerm);
+    });
     searchBtn.addEventListener('click', () => {
         searchInput.focus();
+    });
+    clearSearchBtn.addEventListener('click', () => {
+        if (searchInput.value) {
+            searchInput.value = '';        // Clear the input
+            renderTools(searchInput.value); // Re-render the full list
+            clearSearchBtn.classList.add('hidden'); // Hide the button
+            searchInput.focus(); // Keep the search bar focused
+        }
     });
     openModalBtn.addEventListener('click', openAddModal);
     closeModalBtn.addEventListener('click', closeModal);
@@ -451,4 +497,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     loadTools();
     renderTools();
+    searchInput.focus(); // Pre-focus the search input on page load
 });

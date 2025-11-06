@@ -60,7 +60,12 @@
 
         <section class="tools-section">
             <div class="search-container">
-                <input type="search" id="search-input" placeholder="Search for a tool...">
+                <div class="search-input-wrapper">
+                    <input type="search" id="search-input" placeholder="Search for a tool...">
+                    <button id="clear-search-btn" class="clear-search-btn hidden" title="Clear search">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
                 <button id="search-btn" class="search-btn" title="Search"><span class="material-symbols-outlined">search</span></button>
                 <button id="open-modal-btn" class="open-modal-btn" title="Add new tool"><span class="material-symbols-outlined">add</span></button>
                 <button id="export-btn" class="export-btn" title="Export tools"><span class="material-symbols-outlined">file_upload</span></button>

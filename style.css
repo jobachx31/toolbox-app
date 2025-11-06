@@ -163,9 +163,16 @@ textarea:focus {
 
 .tool-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, 300px);
     grid-auto-rows: auto;
-    gap: 20px;
+    gap: 15px;
+    justify-content: center;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .grid-empty-message {
@@ -178,10 +185,11 @@ textarea:focus {
 
 input[type="search"] {
     max-width: 300px;
+    width: 300px; /* Set a fixed width */
     border-radius: 50px;
     border: 1px solid var(--border-color);
     background-color: var(--surface-color);
-    padding: 12px 20px;
+    padding: 12px 40px 12px 20px; /* Add padding to the right for the button */
     transition: all 0.3s ease;
 }
 
@@ -194,6 +202,30 @@ input[type="search"]:focus {
 /* Hide placeholder text when the search bar is focused */
 input[type="search"]:focus::placeholder {
     color: transparent;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: var(--text-secondary-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.clear-search-btn:hover {
+    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.clear-search-btn.hidden {
+    display: none;
 }
 
 .export-btn,
@@ -241,6 +273,7 @@ input[type="search"]:focus::placeholder {
 
 
 .tool-tile {
+    width: 300px;
     aspect-ratio: 1 / 1;
 }
 
@@ -473,7 +506,7 @@ input[type="search"]:focus::placeholder {
 /* --- Responsive Adjustments --- */
 @media (max-width: 900px) {
     .tool-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
     }
 }
 
