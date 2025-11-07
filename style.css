@@ -204,6 +204,13 @@ input[type="search"]:focus::placeholder {
     color: transparent;
 }
 
+/* Hide the default "x" clear button on search inputs in WebKit browsers */
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+}
+
 .clear-search-btn {
     position: absolute;
     right: 8px;
