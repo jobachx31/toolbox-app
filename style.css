@@ -555,3 +555,8 @@ div.no-more {
     justify-content: center;
     text-align: center;
 }
+
+a.pro-color {
+    text-decoration: none;
+    color: #ffd60a
+}
